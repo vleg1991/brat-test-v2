@@ -1,7 +1,9 @@
 package org.example;
 
+import static org.example.Main.groups;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.example.Main.Group;
@@ -9,22 +11,20 @@ import org.junit.jupiter.api.Test;
 
 class MainTest {
 
-//  @Test
-//  public void testGorupsNotEmptyAfterMethod() {
-//    assertNotNull(Main.groups);
-//    assertTrue(Main.groups.isEmpty());
-//    Main.main(new String[] {});
-//    assertTrue(Main.groups.isEmpty());
-//  }
-//
-//  @Test
-//  public void test() {
-//    assertNotNull(Main.groups);
-//    assertTrue(Main.groups.isEmpty());
-//    Main.main(new String[] {});
-//
-//    // group 1
-//    Set<Group> groups1 = Main.groups.stream()
+
+  @Test
+  public void test() {
+    assertNotNull(groups);
+    assertTrue(groups.isEmpty());
+    Main.main(new String[] {});
+    new HashSet<>(groups.values()).stream().forEach(it -> {
+      System.out.println("----------");
+      it.getLines().stream().forEach(System.out::println);
+    });
+
+    // group 1
+
+//    Set<Group> groups1 = groups.stream()
 //        .filter(it -> it.getResult().contains("\"\";\"012\";\"445\";\"111\""))
 //        .collect(Collectors.toSet());
 //    System.out.println(groups1);
@@ -37,7 +37,7 @@ class MainTest {
 //    );
 //
 //    // group 2
-//    Set<Group> groups2 = Main.groups.stream()
+//    Set<Group> groups2 = groups.stream()
 //        .filter(it -> it.getResult().contains("\"704\";\"698\";\"594\""))
 //        .collect(Collectors.toSet());
 //    System.out.println(groups2);
@@ -50,7 +50,7 @@ class MainTest {
 //    );
 //
 //    // group 3
-//    Set<Group> groups3 = Main.groups.stream()
+//    Set<Group> groups3 = groups.stream()
 //        .filter(it -> it.getResult().contains("\"856\";\"\";\"292\""))
 //        .collect(Collectors.toSet());
 //    System.out.println(groups3);
@@ -63,7 +63,7 @@ class MainTest {
 //    );
 //
 //    // group 3
-//    Set<Group> groups4 = Main.groups.stream()
+//    Set<Group> groups4 = groups.stream()
 //        .filter(it -> it.getResult().contains("\"511\";\"\";\"365\""))
 //        .collect(Collectors.toSet());
 //    System.out.println(groups4);
@@ -76,7 +76,7 @@ class MainTest {
 //    );
 //
 //    // group 3
-//    Set<Group> groups5 = Main.groups.stream()
+//    Set<Group> groups5 = groups.stream()
 //        .filter(it -> it.getResult().contains("\"466\";\"\";\"599\";\"411\""))
 //        .collect(Collectors.toSet());
 //    System.out.println(groups5);
@@ -89,7 +89,7 @@ class MainTest {
 //    );
 //
 //    // group 3
-//    Set<Group> groups6 = Main.groups.stream()
+//    Set<Group> groups6 = groups.stream()
 //        .filter(it -> it.getResult().contains("\"630\";\"494\";\"130\";\"766\""))
 //        .collect(Collectors.toSet());
 //    System.out.println(groups6);
@@ -102,7 +102,7 @@ class MainTest {
 //    );
 //
 //    // group 3
-//    Set<Group> groups7 = Main.groups.stream()
+//    Set<Group> groups7 = groups.stream()
 //        .filter(it -> it.getResult().contains("\"316\";\"704\";\"076\""))
 //        .collect(Collectors.toSet());
 //    System.out.println(groups7);
@@ -115,7 +115,7 @@ class MainTest {
 //    );
 //
 //    // group 3
-//    Set<Group> groups8 = Main.groups.stream()
+//    Set<Group> groups8 = groups.stream()
 //        .filter(it -> it.getResult().contains("\"\";\"486\";\"929\""))
 //        .collect(Collectors.toSet());
 //    System.out.println(groups8);
@@ -128,7 +128,7 @@ class MainTest {
 //    );
 //
 //    // group 3
-//    Set<Group> groups9 = Main.groups.stream()
+//    Set<Group> groups9 = groups.stream()
 //        .filter(it -> it.getResult().contains("\"366\";\"\""))
 //        .collect(Collectors.toSet());
 //    System.out.println(groups9);
@@ -141,15 +141,15 @@ class MainTest {
 //    );
 //
 //    // group 3
-//    assertTrue(Main.groups.stream()
+//    assertTrue(groups.stream()
 //        .filter(it -> it.getResult().contains("\"356\";\"012\";;\"336\""))
 //        .count() == 0
 //    );
 //
 //    // group 3
-//    assertTrue(Main.groups.stream()
+//    assertTrue(groups.stream()
 //        .filter(it -> it.getResult().contains("\"011\"357\";\"128\";\"599\""))
 //        .count() == 0
 //    );
-//  }
+  }
 }

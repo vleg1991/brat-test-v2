@@ -1,9 +1,15 @@
 package org.example;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalUnit;
@@ -13,28 +19,38 @@ import java.util.stream.Collectors;
 
 public class Main {
 
+  public static final Map<Pair, Group> groups = new HashMap<>();
+
   // Класс представляющий группу уникальных строк
   public static class Group {
 
-    private final Set<String> result;
-    private final Set<Pair> groupValues;
+    private Set<Pair> pairs = new HashSet<>();
 
-    public Group(Pair pair, String line) {
-      result = new HashSet<>(Set.of(line));
-      groupValues = new HashSet<>(Set.of(pair));
+    private Set<String> lines = new HashSet<>();
+
+    public Group(String line, Set<Pair> pair) {
+      this.lines.add(line);
+      this.pairs.addAll(pair);
     }
 
-    public Group(Set<Pair> pairsFromLine, String line) {
-      result = new HashSet<>(Set.of(line));
-      groupValues = pairsFromLine;
+    public Group(Set<String> lines) {
+      this.lines = lines;
     }
 
-    public Set<String> getResult() {
-      return result;
+    public Set<String> getLines() {
+      return lines;
     }
 
-    public Set<Pair> getGroupValues() {
-      return groupValues;
+    public void setLines(Set<String> lines) {
+      this.lines = lines;
+    }
+
+    public Set<Pair> getPairs() {
+      return pairs;
+    }
+
+    public void setPairs(Set<Pair> pairs) {
+      this.pairs = pairs;
     }
 
     @Override
@@ -46,19 +62,19 @@ public class Main {
         return false;
       }
       Group group = (Group) o;
-      return Objects.equals(result, group.result) && Objects.equals(groupValues,
-          group.groupValues);
+      return Objects.equals(pairs, group.pairs) && Objects.equals(lines,
+          group.lines);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(result, groupValues);
+      return Objects.hash(pairs, lines);
     }
   }
 
 
   // Класс представляющий пару (индекс столбца, значение)
-  private static class Pair {
+  public static class Pair {
 
     private Integer column; // Индекс столбца
     private String value; // Значение
@@ -106,8 +122,6 @@ public class Main {
 
   public static void main(String[] args) {
 
-    Set<Group> groups = new HashSet<>();
-
     Duration avg = Duration.ZERO;
     Duration all = Duration.ZERO;
     int counter = 0;
@@ -117,7 +131,6 @@ public class Main {
         new FileInputStream("lng.txt")))) {
       String line;
       while ((line = bufferedReader.readLine()) != null) {
-        System.out.println("Row = " + rowCounter);
         LocalDateTime startTime = LocalDateTime.now();
         List<String> splittedLine = Arrays.asList(line.split(";"));
         boolean isLineInCorrect = splittedLine.parallelStream()
@@ -145,7 +158,7 @@ public class Main {
       System.out.println("OIIINBKA");
     }
 
-    outData(sortGroups(groups));
+    outData(sortGroups(new HashSet<>(groups.values())));
 
     System.out.println();
 
@@ -153,7 +166,7 @@ public class Main {
 
 
   // Метод для поиска и объединения групп
-  private static void findAndMergeGroup(String line, List<String> splittedLine, Set<Group> groups) {
+  private static void findAndMergeGroup(String line, List<String> splittedLine, Map<Pair, Group> groups) {
 
     Set<Pair> pairsFromLine = new HashSet<>();
 
@@ -165,78 +178,56 @@ public class Main {
       pairsFromLine.add(pair);
     }
 
-    Group groupWithLine = new Group(pairsFromLine, line);
-    Set<Group> groupsForLine = new HashSet<>();
-//
-//    Map<Pair, Group> map = new HashMap<>();
-//    for (Pair pair : pairsFromLine) {
-//      // List<Group> result
-//      // HashMap<Pair, Set<Group>> map
-//      // map.put(pair, groupWithLine) //  O(1)
-//    }
-
+    Group resultGroup = new Group(line, pairsFromLine);
+    Set<Group> mergingGroups = new HashSet<>();
     for (Pair pair : pairsFromLine) {
-      if (groups.isEmpty()) {
-        groups.add(groupWithLine);
-      } else {
-        groups.parallelStream()
-            .filter(
-                group -> group.groupValues.contains(pair)) // группу, которая содержит текущую пару O(1)
-            .filter(group -> !group.equals(groupWithLine))
-            .findFirst()
-            .ifPresent(groupsForLine::add);
+      if (groups.containsKey(pair)) {
+        mergingGroups.add(groups.get(pair));
       }
+      groups.put(pair, resultGroup);
     }
-
-    if (!groupsForLine.isEmpty()) {
-      groups.add(mergeGroups(groupsForLine, groupWithLine, groups)); // Объединяем найденные группы
-    } else {
-      groups.add(groupWithLine);
-    }
-  }
-
-  private static Group mergeGroups(Set<Group> groupsForLine, Group groupWithLine, Set<Group> groups) {
-
-    for (Group group : groupsForLine) { // Проходим по всем группам
-
-      groupWithLine.result.addAll(
-          group.result); // Добавляем строки из текущей группы в объединенную группу
-      groupWithLine.groupValues.addAll(
-          group.groupValues); // Добавляем пары из текущей группы в объединенную группу
-
-      groups.remove(group);
-    }
-
-    return groupWithLine; // Возвращаем объединенную группу
+    mergingGroups.forEach(it -> {
+      resultGroup.lines.addAll(it.lines);
+      resultGroup.pairs.addAll(it.pairs);
+      resultGroup.pairs.forEach(pair -> {
+        groups.put(pair, resultGroup);
+      });
+    });
   }
 
   public static Set<Group> sortGroups(Set<Group> groups) {
     return groups.stream()
-        .sorted(Comparator.comparingInt(group -> group.result.size()))
+        .sorted(Comparator.comparingInt(group -> group.lines.size()))
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   private static void outData(Set<Group> sortedGroups) {
     int groupNumber = 0; // Номер группы
     for (Group group : sortedGroups) {
-      if (group.result.size() > 1) {
+      if (group.lines.size() > 1) {
         groupNumber++; // увеличиваем счетчик групп с более чем одной строкой
       }
     }
-    System.out.println("Количество групп с более чем одной строкой: " + groupNumber);
 
-    groupNumber = 1;
+    try(Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File("out.txt"))))) {
+      writer.append("Количество групп с более чем одной строкой: " + groupNumber + "\n");
+      groupNumber = 1;
 
-    ArrayList<Group> list = new ArrayList<>(sortedGroups);
+      ArrayList<Group> list = new ArrayList<>(sortedGroups);
 
-    ListIterator<Group> iterator = list.listIterator(list.size());
-
+      ListIterator<Group> iterator = list.listIterator(list.size());
     // Iterate in reverse order
-    while (iterator.hasPrevious()) {
-      Group group = iterator.previous();
-
-      System.out.println("Группа " + groupNumber++); // Выводим надпись с номером группы
-      group.result.forEach(System.out::println);     // Выводим строки из группы
+      while (iterator.hasPrevious()) {
+        Group group = iterator.previous();
+          writer.append("Группа ").append(String.valueOf(groupNumber++)).append( "\n");
+          for (String line : group.lines) {
+            writer.append(line).append( "\n");
+          }
+      }
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException(e);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 }
